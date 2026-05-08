@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lua",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceFolder}/update-from-yaml.lua",
+            "arg": [
+                "../monster/mon.yaml",
+                "../monster/Table_of_monsters.lua",
+                "-o",
+                "../monster/Table_of_monsters_new.lua",
+                "--spec",
+                "../specs/mon-spec.yaml",
+            ],
+        }
+    ]
+}

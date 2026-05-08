@@ -1,0 +1,34 @@
+root:
+  order: ["Name", "Colour", Glyph, Tile, Speed, HD, HD__QUOTED__, "Average HP 10x", AC, EV, Attacks, Holiness, "Item Use", Habitat, Spellsets, Flags, Willpower, Resistances, Vulnerabilities, XP, Size, Intelligence, Genus, Species, Description, Quote]
+  final_comma: true
+root.Attacks:
+  final_comma: true
+root.Attacks.element:
+  inline: true
+  order: [Damage, Type, Flavour]
+root.Spellsets:
+  final_comma: true
+root.Spellsets.element:
+  final_comma: true
+root.Spellsets.element.element:
+  inline: true
+  order: [Spell, Damage, Flags]
+  compare_key: Spell
+root.Spellsets.element.element.Flags:
+  inline: true
+  final_comma: true
+root.Resistances:
+  inline: true
+  final_comma: true
+root.Vulnerabilities:
+  inline: true
+  final_comma: true
+root.Flags:
+  inline: true
+  final_comma: true
+"root.Item Use":
+  inline: true
+root.Description:
+  multiline: true
+root.Quote:
+  multiline: true
