@@ -2,8 +2,8 @@
 
 Lua script for updating wiki tables for dungeon crawl stone soup in lua format.
 
-Requires generation of game data in lua format via `wiki` utility, currently existing in my fork of the game's repo.
-0.34: [Link](https://github.com/Predelnik/crawl/tree/0.34-wiki)
+Requires generation of game data in lua format via `wiki` utility, currently existing in my fork of the game's repo. Links:
+* 0.34: [Link](https://github.com/Predelnik/crawl/tree/0.34-wiki)
 
 Some notes about `wiki` utility:
 * It's very similar to in-game `monster` utility, it exists as a separate file replacing game's main.
@@ -24,6 +24,6 @@ Log about changes is very detailed. Note that even without line in log some thin
 
 
 Additional option `--transfer-type`:
-* Default (skip_small) - changes to numbers which less than 1% and string whitespace only changes will be ignored
-* All - everything will be updated, including small changes
-* Ask - ask about each change should it be transferred.
+* `Default` (`skip_small`) - changes to numbers which less than 1% and string whitespace only changes will be ignored
+* `All` - everything will be updated, including small changes
+* `Ask` - ask about each change should it be transferred.
