@@ -1,4 +1,4 @@
-#update-from-yaml 
+# update-from-yaml 
 
 Lua script for updating wiki tables for dungeon crawl stone soup in lua format.
 
