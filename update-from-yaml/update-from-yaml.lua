@@ -41,6 +41,10 @@ local function _get_key_map(tbl, key_func)
 	return result
 end
 
+function _capitalize(str)
+	return (str:gsub("^%l", string.upper))
+end
+
 ---@param value {[any]: any}
 ---@param indent integer
 ---@param level integer
@@ -113,9 +117,26 @@ local function _table_dump_impl(value, indent, level, path, spec_tbl)
 						keyRep = string.format("[%q]", tostring(key))
 					end
 				end
+				local next_path = path .. '.' .. key
+				local element_spec = nil
+				if spec_tbl and spec_tbl[next_path] then
+					element_spec = spec_tbl[next_path]
+				end
 				local element = value[key]
+				if element == nil then
+					if element_spec then
+						if element_spec.generate_if_missing then
+							local env = setmetatable({ data = value, capitalize = _capitalize }, { __index = _G })
+							local code = load(element_spec.lua_code, "code", "t", env)
+							assert(code, string.format("'%s' failed to compiled", element_spec.lua_code))
+							---@type any
+							element = code()
+						elseif element_spec.default_value ~= nil then
+							element = element_spec.default_value
+						end
+					end
+				end
 				if element ~= nil then
-					local next_path = path .. '.' .. key
 					local element_dump = _table_dump_impl(element, indent, next_level, next_path, spec_tbl)
 					element_dump = trim(element_dump)
 					local comma = key == last_key and (final_comma and "," or "") or ", "
@@ -208,6 +229,9 @@ end
 ---@field inline? boolean
 ---@field multiline? boolean
 ---@field final_comma? boolean
+---@field generate_if_missing? boolean
+---@field lua_code? string
+---@field default_value? any
 
 ---@class ContextBase
 ---@field path string

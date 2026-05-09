@@ -3,6 +3,7 @@ root:
   final_comma: true
 root.Attacks:
   final_comma: true
+  default_value: []
 root.Attacks.element:
   inline: true
   order: [Damage, Type, Flavour]
@@ -20,9 +21,14 @@ root.Spellsets.element.element.Flags:
 root.Resistances:
   inline: true
   final_comma: true
+  default_value: []
+root.Tile:
+  generate_if_missing: true
+  lua_code: "return string.format(\"[[File:%s.png]]\", capitalize(data.Name))"
 root.Vulnerabilities:
   inline: true
   final_comma: true
+  default_value: []
 root.Flags:
   inline: true
   final_comma: true
