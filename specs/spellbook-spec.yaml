@@ -1,0 +1,6 @@
+root:
+  order: [description, name, spells, value]
+  final_comma: true
+root.spells:
+  final_comma: true
+
