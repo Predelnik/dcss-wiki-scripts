@@ -1,0 +1,13 @@
+root:
+  order: [books, description, flags, level, name, noise, "power cap", quote, range, schools]
+  final_comma: true
+root.range:
+  inline: true
+root.noise:
+  inline: true
+root.books:
+  final_comma: true
+root.flags:
+  final_comma: true
+root.schools:
+  final_comma: true
