@@ -209,8 +209,11 @@ function StaticContext:conditional_update(log_line, action, is_small_change)
 		return false
 	end
 	if self.transfer_type == "confirm" then
-		print(string.format(log_line .. " Update (y/n)?"))
+		print(log_line .. " Update (y/n)?")
 		answer = io.read()
+	end
+	if self.transfer_type == "only_new" then
+		return false
 	end
 	if answer == 'y' then
 		self.log = self.log .. log_line .. '\n'
@@ -371,16 +374,17 @@ local function _transfer_dictionary(context, static_context)
 				_table_dump_simple(context.new_dictionary[key]))
 			static_context:conditional_update(log_line,
 				function() context.cur_dictionary[key] = context.new_dictionary[key] end)
-		end
-		---@type AnyContext
-		local new_context = {
-			new_data = context.new_dictionary[key],
-			cur_data = cur_value,
-			path = context.path ~= '' and (context.path .. '.' .. key) or key,
-			spec_path = subpath
-		}
-		if _transfer_any(new_context, static_context) then
-			context.cur_dictionary[key] = context.new_dictionary[key]
+		else
+			---@type AnyContext
+			local new_context = {
+				new_data = context.new_dictionary[key],
+				cur_data = cur_value,
+				path = context.path ~= '' and (context.path .. '.' .. key) or key,
+				spec_path = subpath
+			}
+			if _transfer_any(new_context, static_context) then
+				context.cur_dictionary[key] = context.new_dictionary[key]
+			end
 		end
 	end
 end
@@ -472,7 +476,7 @@ parser:argument("source", "Source file lua or yaml")
 parser:argument("current", "Target lua file")
 parser:option("--spec", "Spec .yaml file")
 parser:option("-o --output", "Output file", "out.lua")
-parser:option("--transfer-type", "Transfer type (all/confirm/skip_small)", "skip_small")
+parser:option("--transfer-type", "Transfer type (all/confirm/skip_small/only_new)", "skip_small")
 ---@type any
 local args = parser:parse()
 
@@ -509,15 +513,22 @@ for _, name in ipairs(key_list) do
 	local data = src_tbl[name]
 	local cur_data = cur_tbl[name]
 	if cur_data == nil then
-		local log_line = string.format('"%s" full transfer.', name)
-		local answer = 'y'
-		if transfer_type == "confirm" then
-			print(string.format(log_line .. " Update (y/n)?"))
-			answer = io.read()
-		end
-		if answer == 'y' then
-			static_context.log = static_context.log .. log_line .. '\n'
-			cur_tbl[name] = data
+		cur_data = cur_tbl[_capitalize(name)]
+		if cur_data == nil then
+			local log_line = string.format('"%s" full transfer.', name)
+			local answer = 'y'
+			if transfer_type == "confirm" then
+				print(string.format(log_line .. " Update (y/n)?"))
+				answer = io.read()
+			end
+			if answer == 'y' then
+				static_context.log = static_context.log .. log_line .. '\n'
+				cur_tbl[name] = data
+			end
+		else
+			print(string.format("Capitalized name for '%s' will be corrected."), name)
+			cur_tbl[name] = cur_tbl[_capitalize(name)]
+			cur_tbl[_capitalize(name)] = nil
 		end
 	else
 		---@type AnyContext
