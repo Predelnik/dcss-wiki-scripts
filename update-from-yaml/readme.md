@@ -2,12 +2,12 @@
 
 Lua script for updating wiki tables for dungeon crawl stone soup in lua format.
 
-Requires generation of game data in lua format via `wiki` utility, currently existing in my fork of the game's repo. Links:
+Requires generation of game data in yaml format via `wiki` utility, currently existing in my fork of the game's repo. Links:
 * 0.34: [Link](https://github.com/Predelnik/crawl/tree/0.34-wiki)
 
 Some notes about `wiki` utility:
 * It's very similar to in-game `monster` utility, it exists as a separate file replacing game's main.
-* Currently only monsters are supported
+* Currently supported: monsters, spells, monster_spells, spellbooks
 * Many things about monster data generation are taken directly from `monster` utility or inspired by it.
 * YAML format was chosen because it doesn't require any special library or code to print, just proper indentation.
 
