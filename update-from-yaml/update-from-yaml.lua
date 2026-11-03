@@ -204,6 +204,10 @@ end
 ---@param is_small_change? boolean
 ---@return boolean
 function StaticContext:conditional_update(log_line, action, is_small_change)
+	if self.transfer_type == 'all' then
+		self.log = self.log .. log_line .. '\n'
+		return false
+	end
 	local answer = 'y'
 	if self.transfer_type == 'skip_small' and is_small_change then
 		return false
@@ -473,7 +477,7 @@ end
 ---@type any
 local parser = argparse("update-from-yaml", "Script for updating lua data from yaml/lua source")
 parser:argument("source", "Source file lua or yaml")
-parser:argument("current", "Target lua file")
+parser:option("--current", "Current lua file")
 parser:option("--spec", "Spec .yaml file")
 parser:option("-o --output", "Output file", "out.lua")
 parser:option("--transfer-type", "Transfer type (all/confirm/skip_small/only_new)", "skip_small")
@@ -496,7 +500,10 @@ else
 	error(string.format("Unsupported extension '%s'. Supported: .yaml, .lua", src_ext))
 end
 ---@type {[string]: any}
-local cur_tbl = dofile(args.current)
+local cur_tbl = {}
+if args.current then
+	cur_tbl = dofile(args.current)
+end
 ---@type {[string]: SpecValue}
 local spec_tbl = yaml.parse(io.open(args.spec, 'r'):read("*all"))
 local key_list = _get_sorted_keys(src_tbl)
@@ -511,11 +518,14 @@ for _, name in ipairs(key_list) do
 	static_context.name = name
 	---@type any
 	local data = src_tbl[name]
-	local cur_data = cur_tbl[name]
+	local cur_data = nil
+	cur_data = cur_tbl[name]
 	if cur_data == nil then
-		cur_data = cur_tbl[_capitalize(name)]
+		if cur_tbl ~= nil then
+			cur_data = cur_tbl[_capitalize(name)]
+		end
 		if cur_data == nil then
-			local log_line = string.format('"%s" full transfer.', name)
+			local log_line = string.format('"%s" processed.', name)
 			local answer = 'y'
 			if transfer_type == "confirm" then
 				print(string.format(log_line .. " Update (y/n)?"))
@@ -539,6 +549,9 @@ for _, name in ipairs(key_list) do
 			spec_path = 'root'
 		}
 		_transfer_any(context, static_context)
+		if transfer_type == 'all' then
+			cur_tbl[name] = data
+		end
 	end
 end
 ---@type string
