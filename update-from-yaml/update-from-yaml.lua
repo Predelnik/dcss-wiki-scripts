@@ -188,7 +188,9 @@ end
 ---@field name string
 ---@field spec_tbl? {[string]: SpecValue}
 ---@field log string
----@field transfer_type string
+---@field confirm string
+---@field no_update string
+---@field skip_small string
 local StaticContext = {}
 
 ---@return self
@@ -204,20 +206,16 @@ end
 ---@param is_small_change? boolean
 ---@return boolean
 function StaticContext:conditional_update(log_line, action, is_small_change)
-	if self.transfer_type == 'all' then
-		self.log = self.log .. log_line .. '\n'
-		return false
-	end
 	local answer = 'y'
-	if self.transfer_type == 'skip_small' and is_small_change then
+	if self.skip_small and is_small_change then
 		return false
 	end
-	if self.transfer_type == "confirm" then
+	if self.no_update then
+		return false
+	end
+	if self.confirm then
 		print(log_line .. " Update (y/n)?")
 		answer = io.read()
-	end
-	if self.transfer_type == "only_new" then
-		return false
 	end
 	if answer == 'y' then
 		self.log = self.log .. log_line .. '\n'
@@ -480,7 +478,11 @@ parser:argument("source", "Source file lua or yaml")
 parser:option("--current", "Current lua file")
 parser:option("--spec", "Spec .yaml file")
 parser:option("-o --output", "Output file", "out.lua")
-parser:option("--transfer-type", "Transfer type (all/confirm/skip_small/only_new)", "skip_small")
+parser:flag("-c --confirm", "Confirm each change")
+parser:flag("--no-add", "Confirm each change")
+parser:flag("--no-update", "Confirm each change")
+parser:flag("--no-remove", "Confirm each change")
+parser:flag("--skip-small", "Skip white-space only or small numeric changes")
 ---@type any
 local args = parser:parse()
 
@@ -510,8 +512,9 @@ local key_list = _get_sorted_keys(src_tbl)
 local static_context = StaticContext:new()
 static_context.log = ''
 ---@type string
-local transfer_type = args.transfer_type
-static_context.transfer_type = transfer_type
+static_context.confirm = args.confirm
+static_context.no_update = args.no_update
+static_context.skip_small = args.skip_small
 static_context.spec_tbl = spec_tbl
 
 for _, name in ipairs(key_list) do
@@ -525,15 +528,9 @@ for _, name in ipairs(key_list) do
 			cur_data = cur_tbl[_capitalize(name)]
 		end
 		if cur_data == nil then
-			local log_line = string.format('"%s" processed.', name)
-			local answer = 'y'
-			if transfer_type == "confirm" then
-				print(string.format(log_line .. " Update (y/n)?"))
-				answer = io.read()
-			end
-			if answer == 'y' then
-				static_context.log = static_context.log .. log_line .. '\n'
-				cur_tbl[name] = data
+			if not args.no_add then
+				local log_line = string.format('"%s" added.', name)
+				static_context:conditional_update(log_line, function() cur_tbl[name] = data end)
 			end
 		else
 			print(string.format("Capitalized name for '%s' will be corrected."), name)
@@ -549,11 +546,22 @@ for _, name in ipairs(key_list) do
 			spec_path = 'root'
 		}
 		_transfer_any(context, static_context)
-		if transfer_type == 'all' then
+		if static_context.update and not static_context.confirm then
 			cur_tbl[name] = data
 		end
 	end
 end
+
+local cur_keys = _get_sorted_keys(cur_tbl)
+if not args.no_remove then
+	for _, key in ipairs(cur_keys) do
+		if src_tbl[key] == nil then
+			local log_line = string.format("Removed '%s'", key)
+			static_context:conditional_update(log_line, function() cur_tbl[key] = nil end)
+		end
+	end
+end
+
 ---@type string
 local dst_path = args.output
 io.open(dst_path, 'w'):write(_table_dump(cur_tbl, spec_tbl))
